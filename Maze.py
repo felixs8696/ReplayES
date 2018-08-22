@@ -1,6 +1,6 @@
 import numpy as np
 np.warnings.filterwarnings('ignore')
-from copy import deepcopy
+import matplotlib.pyplot as plt
 
 from RandomActor import RandomActor
 
@@ -123,6 +123,8 @@ class Maze(object):
 			else:
 				std_devs[self.get_maze_index(i)] = np.std(sd_map.map[i])
 		print(np.round(std_devs, 2))
+		plt.imshow(std_devs, cmap='hot', interpolation='nearest')
+		plt.show()
 		return std_devs
 
 class StdDevMap(object):
