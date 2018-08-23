@@ -25,12 +25,13 @@ def get_direction(prev, curr):
 		return 4
 
 class Maze(object):
-	def __init__(self, height, width):
+	def __init__(self, height, width, maze=None, momentum=False):
 		self.height = height
 		self.width = width
 		self.start = (0,0)
 		self.goal = (self.height - 1, self.width - 1)
-	 	self.reset()
+		self.momentum = momentum
+	 	self.reset(maze)
 
 	def generate_path(self, momentum=False):
 		start_set = set([])
@@ -99,8 +100,12 @@ class Maze(object):
 			last_end_dir = get_direction(end_head, end_prop)
 			end_head = end_prop
 
-	def reset(self):
-		self.maze = np.ones(self.height*self.width).reshape((self.height, self.width)) * -1
+	def reset(self, maze):
+		if maze is not None:
+			self.maze = maze
+		else:
+			self.maze = np.ones(self.height*self.width).reshape((self.height, self.width)) * -1
+			self.generate_path(self.momentum)
 
 	def display(self):
 		print(self.maze)
@@ -208,15 +213,36 @@ class RunningAvg(object):
 
 if __name__ == "__main__":
 
-	maze = Maze(HEIGHT, WIDTH)
+	set_maze_1 = np.array([[ 0,  0,  0,  0,  0,  0,  0,  0,  0, -1],
+												 [-1, -1, -1, -1, -1, -1, -1, -1,  0, -1],
+											 	 [-1,  0,  0,  0,  0,  0,  0,  0,  0, -1],
+											 	 [-1,  0, -1, -1, -1, -1, -1, -1,  0, -1],
+											   [-1,  0, -1, -1, -1, -1, -1, -1,  0, -1],
+											   [-1,  0, -1, -1, -1, -1, -1, -1,  0, -1],
+											   [-1,  0, -1, -1, -1, -1, -1, -1,  0, -1],
+											   [-1,  0, -1, -1, -1, -1, -1, -1,  0, -1],
+											   [-1,  0, -1, -1, -1, -1, -1, -1, -1, -1],
+											   [-1,  0,  0,  0,  0,  0,  0,  0,  0,  0]])
+
+	set_maze_2 = np.array([[ 0,  0,  0,  0,  0,  0, -1, -1, -1, -1],
+												 [-1, -1, -1, -1, -1,  0, -1, -1, -1, -1],
+											 	 [-1,  0,  0,  0,  0,  0,  0,  0,  0, -1],
+											 	 [-1,  0, -1, -1, -1,  0, -1, -1,  0, -1],
+											   [-1,  0, -1, -1, -1,  0, -1, -1,  0, -1],
+											   [-1,  0, -1, -1, -1,  0, -1, -1,  0, -1],
+											   [-1,  0, -1, -1, -1,  0, -1, -1,  0, -1],
+											   [-1,  0, -1, -1, -1,  0, -1, -1,  0, -1],
+											   [-1,  0, -1, -1, -1,  0, -1, -1, -1, -1],
+											   [-1,  0,  0,  0, -1,  0,  0,  0,  0,  0]])
 	global_r = True
 	average = True
-	# maze.generate_path()
-	# maze.display()
+	random_maze = False
 
-	# maze.reset()
-
-	maze.generate_path(True)
+	if random_maze:
+		maze = Maze(HEIGHT, WIDTH, maze=None, momentum=True)
+	else:
+		maze = Maze(HEIGHT, WIDTH, maze=set_maze_2, momentum=True)
+	
 	maze.display()
 
 	sd_map = StdDevMap(maze, average=average)
