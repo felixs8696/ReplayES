@@ -1,11 +1,12 @@
 import numpy as np
 np.warnings.filterwarnings('ignore')
 import matplotlib.pyplot as plt
+from copy import deepcopy
 
 from RandomActor import RandomActor
 
-HEIGHT = 20
-WIDTH = 20
+HEIGHT = 10
+WIDTH = 10
 TIMESTEPS = HEIGHT*WIDTH
 
 def get_direction(prev, curr):
@@ -105,7 +106,10 @@ class Maze(object):
 		print(self.maze)
 		print("\n")
 		plt.figure(1)
-		plt.imshow(self.maze, cmap='hot', interpolation='nearest')
+		maze_copy = deepcopy(self.maze)
+		maze_copy[0][0] = -.5
+		maze_copy[self.height - 1][self.width - 1] = -.5
+		plt.imshow(maze_copy, cmap='hot', interpolation='nearest')
 		# plt.show()
 
 	def get_flat_index(self, pos):
@@ -160,8 +164,12 @@ class StdDevMap(object):
 				print("Index: ", idx)
 			self.map[idx].append(value)
 
-	def display(self):
+	def display(self, visited_count):
 		std_devs = np.zeros(self.maze.height*self.maze.width).reshape((self.maze.height, self.maze.width))
+
+		plt.figure(2)
+		ax = plt.gca()
+
 		for i in range(self.maze.height * self.maze.width):
 			if self.maze.maze[self.maze.get_maze_index(i)] == -1:
 				std_devs[self.maze.get_maze_index(i)] = -1
@@ -176,9 +184,16 @@ class StdDevMap(object):
 					std_devs[self.maze.get_maze_index(i)] = np.std(avg_over_dirs)
 				else:
 					std_devs[self.maze.get_maze_index(i)] = np.std(self.map[i])
+
+			h = i / self.maze.width
+			w = i % self.maze.width
+			text = ax.text(w, h, visited_count[h][w],
+                     ha="center", va="center", color="lightblue")
 		print(np.round(std_devs, 2))
-		plt.figure(2)
-		plt.imshow(std_devs, cmap='hot', interpolation='nearest')
+		im = ax.imshow(std_devs, cmap='hot', interpolation='nearest')
+		cbar = ax.figure.colorbar(im, ax=ax)
+		cbar.ax.set_ylabel("Standard Deviation", rotation=-90, va="bottom")
+		ax.set_title("Number of visitors per State colored by Std Dev")
 		# plt.show()
 		return std_devs
 
@@ -207,6 +222,7 @@ if __name__ == "__main__":
 	sd_map = StdDevMap(maze, average=average)
 	actors = [RandomActor(maze.goal, i) for i in range(10)]
 
+	visited_count = np.zeros(maze.height*maze.width, dtype=int).reshape((maze.height, maze.width))
 
 	for i in range(len(actors)):
 		actor = actors[i]
@@ -215,6 +231,7 @@ if __name__ == "__main__":
 			old_pos = actor.act(maze)
 			d = get_direction(old_pos, actor.pos)
 			delta = actor.update_reward()
+			visited_count[old_pos] += 1
 			if global_r:
 				if average:
 					idx_traversed.append((maze.get_flat_index(old_pos), d))
@@ -231,7 +248,7 @@ if __name__ == "__main__":
 				else:
 					sd_map.put(idx, actor.reward)
 
-	sd_map.display()
+	sd_map.display(visited_count)
 
 	plt.show()
 
