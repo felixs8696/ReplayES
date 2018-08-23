@@ -30,10 +30,12 @@ class RandomActor(object):
 		i = np.random.choice(len(valid), 1)[0]
 		self.pos = valid[i]
 
-		return valid[i]
+		return (h, w)
 
 	def update_reward(self):
+		# TODO: Discount future reward not past
+		prev_reward = self.reward
 		curr_reward = euclidean_distance(self.pos, self.goal)
 		discounted_reward = .9 * self.reward
 		self.reward = curr_reward + discounted_reward
-		return self.reward
+		return self.reward - prev_reward
